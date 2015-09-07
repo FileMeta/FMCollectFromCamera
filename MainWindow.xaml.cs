@@ -1,0 +1,90 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Windows.Interop;
+
+namespace FMCollectFromCamera
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        internal delegate void StringDelegate(string text);
+        internal delegate void VoidDelegate();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        /// <summary>
+        /// Write to the output control. Thread safe.
+        /// </summary>
+        /// <param name="text"></param>
+        public void OutputWrite(string text)
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(new StringDelegate(OutputWriteInternal), text);
+            }
+            else
+            {
+                OutputWriteInternal(text);
+            }
+        }
+
+        public void OutputWrite(string format, params object[] args)
+        {
+            OutputWrite(string.Format(format, args));
+        }
+
+        private void OutputWriteInternal(string text)
+        {
+            mBodyText.Inlines.Add(new Run(text));
+        }
+
+     IntPtr mHwnd = IntPtr.Zero;
+
+        /// <summary>
+        /// Get window handle. Thread safe.
+        /// </summary>
+        public IntPtr GetWindowHandle()
+        {
+            if (mHwnd == IntPtr.Zero)
+            {
+                if (!Dispatcher.CheckAccess())
+                {
+                    Dispatcher.Invoke(new VoidDelegate(GetWindowHandleInternal));
+                }
+                else
+                {
+                    GetWindowHandleInternal();
+                }
+            }
+            return mHwnd;
+        }
+
+        private void GetWindowHandleInternal()
+        {
+            mHwnd = new WindowInteropHelper(this).Handle;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            CollectorThread thread = new CollectorThread(this);
+            thread.Start();
+        }
+    }
+}
