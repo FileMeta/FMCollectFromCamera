@@ -55,14 +55,14 @@ namespace FMCollectFromCamera
             mBodyText.Inlines.Add(new Run(text));
         }
 
-     IntPtr mHwnd = IntPtr.Zero;
+     IntPtr m_hwnd = IntPtr.Zero;
 
         /// <summary>
         /// Get window handle. Thread safe.
         /// </summary>
         public IntPtr GetWindowHandle()
         {
-            if (mHwnd == IntPtr.Zero)
+            if (m_hwnd == IntPtr.Zero)
             {
                 if (!Dispatcher.CheckAccess())
                 {
@@ -73,12 +73,12 @@ namespace FMCollectFromCamera
                     GetWindowHandleInternal();
                 }
             }
-            return mHwnd;
+            return m_hwnd;
         }
 
         private void GetWindowHandleInternal()
         {
-            mHwnd = new WindowInteropHelper(this).Handle;
+            m_hwnd = new WindowInteropHelper(this).Handle;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

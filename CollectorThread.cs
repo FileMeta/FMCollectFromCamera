@@ -12,24 +12,24 @@ namespace FMCollectFromCamera
     {
         delegate void ConsoleWrite(string text);
 
-        private static readonly string[] sMediaExtensions = new string[] { ".jpg", ".mp4", ".avi", ".mpg", ".mov", ".wav", ".mp3", ".jpeg", ".mpeg" };
+        private static readonly string[] s_mediaExtensions = new string[] { ".jpg", ".mp4", ".avi", ".mpg", ".mov", ".wav", ".mp3", ".jpeg", ".mpeg" };
 
-        int mStarted;  // Actually used as a bool but Interlocked works better with an int.
-        Thread mThread;
-        MainWindow mMainWindow;
+        int m_started;  // Actually used as a bool but Interlocked works better with an int.
+        Thread m_thread;
+        MainWindow m_mainWindow;
 
         public CollectorThread(MainWindow mainWindow)
         {
-            mThread = new Thread(ThreadMain);
-            mMainWindow = mainWindow;
+            m_thread = new Thread(ThreadMain);
+            m_mainWindow = mainWindow;
         }
 
         public void Start()
         {
-            int started = Interlocked.CompareExchange(ref mStarted, 1, 0);
+            int started = Interlocked.CompareExchange(ref m_started, 1, 0);
             if (started == 0)
             {
-                mThread.Start();
+                m_thread.Start();
             }
         }
 
@@ -53,7 +53,7 @@ namespace FMCollectFromCamera
             }
             else if (!Directory.Exists(destFolder))
             {
-                mMainWindow.OutputWrite("Destination folder '{0}' does not exist.\r\n", destFolder);
+                m_mainWindow.OutputWrite("Destination folder '{0}' does not exist.\r\n", destFolder);
                 showSyntax = true;
             }
             else
@@ -62,13 +62,13 @@ namespace FMCollectFromCamera
             }
             if (showSyntax)
             {
-                mMainWindow.OutputWrite("Command-Line Syntax: FMCollectFromCamera <destination folder path>\r\n");
+                m_mainWindow.OutputWrite("Command-Line Syntax: FMCollectFromCamera <destination folder path>\r\n");
                 return;
             }
 
-            mMainWindow.OutputWrite("Collecting images from cameras and cards to '{0}'.\r\n", destFolder);
+            m_mainWindow.OutputWrite("Collecting images from cameras and cards to '{0}'.\r\n", destFolder);
 
-            IntPtr hwndOwner = mMainWindow.GetWindowHandle();
+            IntPtr hwndOwner = m_mainWindow.GetWindowHandle();
 
             // Process each removable drive
             foreach (DriveInfo drv in DriveInfo.GetDrives())
@@ -94,7 +94,7 @@ namespace FMCollectFromCamera
                                 {
                                     sourceFolders.Add(di.FullName);
 
-                                    foreach (string ext in sMediaExtensions)
+                                    foreach (string ext in s_mediaExtensions)
                                     {
                                         if (di.EnumerateFiles(string.Concat("*", ext)).Any())
                                         {
@@ -110,8 +110,8 @@ namespace FMCollectFromCamera
                             // Write the names out
                             foreach (string path in sourcePaths)
                             {
-                                mMainWindow.OutputWrite(path);
-                                mMainWindow.OutputWrite("\r\n");
+                                m_mainWindow.OutputWrite(path);
+                                m_mainWindow.OutputWrite("\r\n");
                             }
 
                             // Perform the move
@@ -153,7 +153,7 @@ namespace FMCollectFromCamera
                             catch (Exception err)
                             {
                                 // Report errors during cleanup but proceed with other files.
-                                mMainWindow.OutputWrite("Error cleaning up folders on drive '{0}'.\r\n{0}\r\n", drv.Name, err.Message);
+                                m_mainWindow.OutputWrite("Error cleaning up folders on drive '{0}'.\r\n{0}\r\n", drv.Name, err.Message);
                             }
                         }
 
@@ -161,9 +161,9 @@ namespace FMCollectFromCamera
                 } // If drive is ready and removable
             } // for each drive
 
-            mMainWindow.OutputWrite("Transfer complete. Exiting in 5 seconds.");
+            m_mainWindow.OutputWrite("Transfer complete. Exiting in 5 seconds.");
             Thread.Sleep(5000);
-            mMainWindow.Dispatcher.BeginInvokeShutdown(System.Windows.Threading.DispatcherPriority.Normal);
+            m_mainWindow.Dispatcher.BeginInvokeShutdown(System.Windows.Threading.DispatcherPriority.Normal);
         } // Function ThreadMain
 
     } // Class CollectorThread
